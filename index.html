@@ -6,19 +6,29 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Pixelart.js</title>
     <link rel="stylesheet" href="styles.css">
+    <script src="jquery-4.0.0.min.js"></script>
   </head>
   <body>
     <div id="tools">
-      <button></button>
-      <button></button>
-      <button></button>
-      <button></button>
-      <button></button>
-      <button></button>
-      <button></button>
-      <button></button>
+      <button>select</button>
+      <button>brush</button>
+      <button>spray</button>
+      <button>pen</button>
+      <button>eraser</button>
+      <button>circle</button>
+      <button>rect</button>
+      <button>tri</button>
     </div>
-    <canvas></canvas>
+
+    <canvas id="canvas"></canvas>
+
+    <div id="settings">
+      <h2 class="title">--- Settings ---</h2>
+      <div>
+        <label for="overlay">Enable grid overlay?</label>
+        <input type="checkbox" id="overlay" name="overlay">
+      </div>
+    </div>
 
     <script src="script.js"></script>
   </body>
