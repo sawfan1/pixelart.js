@@ -32,8 +32,6 @@ body {
 }
 
 #canvas {
-  width: 600px;
-  height: 400px;
   background-color: white;
 }
 
@@ -54,4 +52,9 @@ body {
   color: white;
   font-family: Arial, Helvetica, sans-serif;
   font-size: 20px;
+}
+
+.active {
+  background-color: black !important;
+  color: white;
 }
