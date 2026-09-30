@@ -1,4 +1,34 @@
-console.log("hello world!")
+console.log("app initialized!")
+
+// -----------------------------------
+
+function generateBrush(radius, pos) {
+  let res = [];
+
+  for (let y = -radius; y <= radius; y++) {
+    for (let x = -radius; x <= radius; x++) {
+      if (x * x + y * y <= radius * radius) {
+        const px = Math.floor(pos.x) + x;
+        const py = Math.floor(pos.y) + y;
+
+        if (
+          px >= 0 && px < WIDTH &&
+          py >= 0 && py < HEIGHT
+        ) {
+          res.push({
+              x: px,
+              y: py
+          });
+        }
+      }
+    }
+  }
+
+  return res;
+}
+
+
+// -----------------------------------
 
 const canvas = document.getElementById("canvas")
 const ctx = canvas.getContext('2d')
@@ -74,9 +104,16 @@ canvas.addEventListener("mousedown", () => {
   mouse_held = true;
 })
 
+let stroke = 3
+
 function brush(event) {
   const pos = getMousePos(canvas, event);
-  setPixel(0, 0, 0, Math.floor(pos.x), Math.floor(pos.y))
+  const pixels = generateBrush(4, pos)
+
+  for (const pixel of pixels) {
+    setPixel(0, 0, 0, Math.floor(pixel.x), Math.floor(pixel.y))
+  }
+  
   console.log(pos.x, pos.y)
   updateCanvas()
   console.log("brushing")
