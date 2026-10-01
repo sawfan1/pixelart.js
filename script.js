@@ -1,24 +1,58 @@
 console.log("app initialized!")
 
-function hexToRgb(hex) {
-  hex = hex.replace('#', '');
-
-  if (hex.length === 3) {
-    hex = hex.split('').map(c => c + c).join('');
-  }
-
-  return {
-    r: parseInt(hex.substring(0, 2), 16),
-    g: parseInt(hex.substring(2, 4), 16),
-    b: parseInt(hex.substring(4, 6), 16)
-  };
-}
-
-const SELECTED_COLOR = {r: 145, g: 23, b: 90}
+const SELECTED_COLOR = { r: 145, g: 23, b: 90 }
 let SELECTED_STROKE = 4
 
+const WHITE = {
+  r: 255,
+  g: 255,
+  b: 255
+}
 
-// -----------------------------------
+function drawLine(from, to, stamp_function) {
+  const dx = to.x - from.x;
+  const dy = to.y - from.y;
+  const dist = Math.hypot(dx, dy)
+
+  const step = Math.max(1, Math.floor(SELECTED_STROKE/2));
+  const steps = Math.max(1, Math.ceil(dist/step));
+
+  for (let i=1; i<=steps; i++) {
+    const t = i / steps;
+    const x = from.x + dx * t;
+    const y = from.y + dy * t;
+    stamp_function(x, y);
+  }
+}
+
+function stamp_brush(x, y) {
+  const pixels = generateBrush(SELECTED_STROKE, {x,y});
+  for (const pixel of pixels) {
+    setPixel(SELECTED_COLOR, pixel.x, pixel.y);
+  }
+}
+
+function stamp_spray(x, y) {
+  const pixels = generateSpray(SELECTED_STROKE, {x, y})
+  for (const pixel of pixels) {
+    setPixel(SELECTED_COLOR, pixel.x, pixel.y)
+  }
+}
+
+function stamp_eraser(x, y) {
+  const pixels = generateSquare(SELECTED_STROKE, { x, y });
+  const white = { r: 255, g: 255, b: 255 };
+  for (const pixel of pixels) {
+    setPixel(WHITE, pixel.x, pixel.y);
+  }
+}
+
+function stamp_pen(x, y) {
+  const pixels = generateBrush(1, {x, y})
+  for (const pixel of pixels) {
+    setPixel(SELECTED_COLOR, pixel.x, pixel.y)
+  }
+}
 
 function generateSquare(length, pos) {
   let res = [];
@@ -32,6 +66,13 @@ function generateSquare(length, pos) {
     }
   }
   return res;
+}
+
+function generateSpray(radius, pos) {
+  const res = generateBrush(radius * 2, pos);
+  const keepRatio = 0.1;
+
+  return res.filter(() => Math.random() < keepRatio);
 }
 
 function generateBrush(radius, pos) {
@@ -48,8 +89,8 @@ function generateBrush(radius, pos) {
           py >= 0 && py < HEIGHT
         ) {
           res.push({
-              x: px,
-              y: py
+            x: px,
+            y: py
           });
         }
       }
@@ -58,7 +99,6 @@ function generateBrush(radius, pos) {
 
   return res;
 }
-
 
 // -----------------------------------
 
@@ -85,7 +125,7 @@ const imageData = ctx.createImageData(WIDTH, HEIGHT)
 const data = imageData.data;
 
 function updateCanvas() {
-  for (let i=0, j=0; i<state.length; i+=3, j+=4) {
+  for (let i = 0, j = 0; i < state.length; i += 3, j += 4) {
     data[j] = state[i];
     data[j + 1] = state[i + 1];
     data[j + 2] = state[i + 2];
@@ -97,13 +137,13 @@ function updateCanvas() {
 
 updateCanvas()
 
+const idx = (x, y) => (y * WIDTH + x) * 3;
 
-const idx = (x, y) => (y*WIDTH+x)*3;
-function setPixel(r, g, b, x, y) {
+function setPixel(color, x, y) {
   let pos = idx(x, y);
-  state[pos] = r;
-  state[pos+1] = g;
-  state[pos+2] = b;
+  state[pos] = color.r;
+  state[pos + 1] = color.g;
+  state[pos + 2] = color.b;
 }
 
 let selected_tool = tools.SELECT;
@@ -125,8 +165,8 @@ for (const key in tools) {
 function getMousePos(canvas, event) {
   const rect = canvas.getBoundingClientRect();
   return {
-      x: event.clientX - rect.left,
-      y: event.clientY - rect.top
+    x: event.clientX - rect.left,
+    y: event.clientY - rect.top
   };
 }
 
@@ -140,43 +180,53 @@ canvas.addEventListener("mousedown", () => {
 let stroke = 3
 let lastpos = null
 
-function brush(event) {
-  const pos = getMousePos(canvas, event);
-  const pixels = generateBrush(SELECTED_STROKE, pos)
-
-  for (const pixel of pixels) {
-    setPixel(SELECTED_COLOR.r, SELECTED_COLOR.g, SELECTED_COLOR.b, Math.floor(pixel.x), Math.floor(pixel.y))
-  }
-  
-  console.log(pos.x, pos.y)
-  updateCanvas()
-  console.log("brushing")
-}
-
-function erase(event) {
-  const pos = getMousePos(canvas, event);
-  const pixels = generateSquare(SELECTED_STROKE, pos)
-  for (const pixel of pixels) {
-    setPixel(255, 255, 255, Math.floor(pixel.x), Math.floor(pixel.y))
-
-    // simply paint with white to erase
-  }
-
-  updateCanvas()
-}
-
 
 canvas.addEventListener("mousemove", (event) => {
   if (!mouse_held) return;
+  const pos = getMousePos(canvas, event);
   if (selected_tool == "select") {
     console.log("selecting")
-  } 
-  if (selected_tool == "brush") {
-    brush(event)
   }
-  if (selected_tool == "eraser") {
-    erase(event)
-    console.log("erasing")
+  if (selected_tool == "brush") {
+    if (lastpos) {
+      drawLine(lastpos, pos, stamp_brush)
+    } else {
+      stamp_brush(pos.x, pos.y)
+    }
+
+    lastpos = pos;
+    updateCanvas()
+  }
+  if (selected_tool === "eraser") {
+    if (lastpos) {
+      drawLine(lastpos, pos, stamp_eraser);
+    } else {
+      stamp_eraser(pos.x, pos.y);
+    }
+    lastpos = pos;
+    updateCanvas();
+  }
+
+  if (selected_tool === "pen") {
+    if (lastpos) {
+      drawLine(lastpos, pos, stamp_pen)
+    } else {
+      stamp_pen(pos.x, pos.y);
+    }
+
+    lastpos = pos;
+    updateCanvas()
+  }
+
+  if (selected_tool === "spray") {
+    if (lastpos) {
+      drawLine(lastpos, pos, stamp_spray)
+    } else {
+      stamp_spray(pos.x, pos.y);
+    }
+
+    lastpos = pos;
+    updateCanvas()
   }
 })
 
@@ -184,7 +234,7 @@ canvas.addEventListener("mouseup", (event) => {
   mouse_held = false;
 })
 
-$('#color').on('input', function() {
+$('#color').on('input', function () {
   const selectedColor = $(this).val();
   const cur_color = hexToRgb(selectedColor);
   SELECTED_COLOR.r = cur_color.r
@@ -192,7 +242,7 @@ $('#color').on('input', function() {
   SELECTED_COLOR.b = cur_color.b
 });
 
-$('#stroke').on('input', function() {
+$('#stroke').on('input', function () {
   SELECTED_STROKE = $(this).val();
   console.log(SELECTED_STROKE)
 });
