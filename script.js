@@ -1,5 +1,23 @@
 console.log("app initialized!")
 
+function hexToRgb(hex) {
+  hex = hex.replace('#', '');
+
+  if (hex.length === 3) {
+    hex = hex.split('').map(c => c + c).join('');
+  }
+
+  return {
+    r: parseInt(hex.substring(0, 2), 16),
+    g: parseInt(hex.substring(2, 4), 16),
+    b: parseInt(hex.substring(4, 6), 16)
+  };
+}
+
+const SELECTED_COLOR = {r: 145, g: 23, b: 90}
+let SELECTED_STROKE = 4
+
+
 // -----------------------------------
 
 function generateSquare(length, pos) {
@@ -116,16 +134,18 @@ let mouse_held = false;
 
 canvas.addEventListener("mousedown", () => {
   mouse_held = true;
+  lastpos = null
 })
 
 let stroke = 3
+let lastpos = null
 
 function brush(event) {
   const pos = getMousePos(canvas, event);
-  const pixels = generateBrush(4, pos)
+  const pixels = generateBrush(SELECTED_STROKE, pos)
 
   for (const pixel of pixels) {
-    setPixel(40, 120, 120, Math.floor(pixel.x), Math.floor(pixel.y))
+    setPixel(SELECTED_COLOR.r, SELECTED_COLOR.g, SELECTED_COLOR.b, Math.floor(pixel.x), Math.floor(pixel.y))
   }
   
   console.log(pos.x, pos.y)
@@ -135,13 +155,16 @@ function brush(event) {
 
 function erase(event) {
   const pos = getMousePos(canvas, event);
-  const pixels = generateSquare(4, pos)
+  const pixels = generateSquare(SELECTED_STROKE, pos)
   for (const pixel of pixels) {
     setPixel(255, 255, 255, Math.floor(pixel.x), Math.floor(pixel.y))
+
+    // simply paint with white to erase
   }
 
   updateCanvas()
 }
+
 
 canvas.addEventListener("mousemove", (event) => {
   if (!mouse_held) return;
@@ -161,3 +184,15 @@ canvas.addEventListener("mouseup", (event) => {
   mouse_held = false;
 })
 
+$('#color').on('input', function() {
+  const selectedColor = $(this).val();
+  const cur_color = hexToRgb(selectedColor);
+  SELECTED_COLOR.r = cur_color.r
+  SELECTED_COLOR.g = cur_color.g
+  SELECTED_COLOR.b = cur_color.b
+});
+
+$('#stroke').on('input', function() {
+  SELECTED_STROKE = $(this).val();
+  console.log(SELECTED_STROKE)
+});
