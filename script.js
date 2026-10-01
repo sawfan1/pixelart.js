@@ -2,6 +2,20 @@ console.log("app initialized!")
 
 // -----------------------------------
 
+function generateSquare(length, pos) {
+  let res = [];
+  for (let y = -length; y <= length; y++) {
+    for (let x = -length; x <= length; x++) {
+      const px = Math.floor(pos.x) + x;
+      const py = Math.floor(pos.y) + y;
+      if (px >= 0 && px < WIDTH && py >= 0 && py < HEIGHT) {
+        res.push({ x: px, y: py });
+      }
+    }
+  }
+  return res;
+}
+
 function generateBrush(radius, pos) {
   let res = [];
 
@@ -111,7 +125,7 @@ function brush(event) {
   const pixels = generateBrush(4, pos)
 
   for (const pixel of pixels) {
-    setPixel(0, 0, 0, Math.floor(pixel.x), Math.floor(pixel.y))
+    setPixel(40, 120, 120, Math.floor(pixel.x), Math.floor(pixel.y))
   }
   
   console.log(pos.x, pos.y)
@@ -119,12 +133,27 @@ function brush(event) {
   console.log("brushing")
 }
 
+function erase(event) {
+  const pos = getMousePos(canvas, event);
+  const pixels = generateSquare(4, pos)
+  for (const pixel of pixels) {
+    setPixel(255, 255, 255, Math.floor(pixel.x), Math.floor(pixel.y))
+  }
+
+  updateCanvas()
+}
+
 canvas.addEventListener("mousemove", (event) => {
   if (!mouse_held) return;
   if (selected_tool == "select") {
     console.log("selecting")
-  } else if (selected_tool == "brush") {
+  } 
+  if (selected_tool == "brush") {
     brush(event)
+  }
+  if (selected_tool == "eraser") {
+    erase(event)
+    console.log("erasing")
   }
 })
 
