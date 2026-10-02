@@ -104,6 +104,8 @@ function generateBrush(radius, pos) {
 
 const canvas = document.getElementById("canvas")
 const ctx = canvas.getContext('2d')
+const preview = document.getElementById("preview")
+const preview_ctx = preview.getContext('2d')
 
 const WIDTH = 600;
 const HEIGHT = 400;
@@ -183,13 +185,15 @@ function getMousePos(canvas, event) {
 
 let mouse_held = false;
 
-canvas.addEventListener("mousedown", () => {
+canvas.addEventListener("mousedown", (event) => {
   mouse_held = true;
   lastpos = null;
+  shape_start = selected_tool === "rect" ? getMousePos(canvas, event) : null;
 })
 
 let stroke = 3
 let lastpos = null
+let shape_start = null
 
 
 canvas.addEventListener("mousemove", (event) => {
@@ -243,10 +247,35 @@ canvas.addEventListener("mousemove", (event) => {
     lastpos = pos;
     updateCanvas()
   }
+
+  if (selected_tool == "rect") {
+    preview_ctx.clearRect(0, 0, WIDTH, HEIGHT)
+    preview_ctx.beginPath()
+    preview_ctx.rect(shape_start.x, shape_start.y, pos.x - shape_start.x, pos.y - shape_start.y)
+    preview_ctx.strokeStyle = `rgb(${SELECTED_COLOR.r}, ${SELECTED_COLOR.g}, ${SELECTED_COLOR.b})`
+    preview_ctx.lineWidth = SELECTED_STROKE
+    preview_ctx.stroke()
+  }
 })
 
 canvas.addEventListener("mouseup", (event) => {
   mouse_held = false;
+  if (selected_tool === "rect" && shape_start) {
+    const preview_data = preview_ctx.getImageData(0, 0, WIDTH, HEIGHT).data
+    for (let pixel = 0; pixel < WIDTH * HEIGHT; pixel++) {
+      const preview_offset = pixel * 4
+      const alpha = preview_data[preview_offset + 3] / 255
+      if (alpha === 0) continue
+
+      const state_offset = pixel * 3
+      state[state_offset] = Math.round(preview_data[preview_offset] * alpha + state[state_offset] * (1 - alpha))
+      state[state_offset + 1] = Math.round(preview_data[preview_offset + 1] * alpha + state[state_offset + 1] * (1 - alpha))
+      state[state_offset + 2] = Math.round(preview_data[preview_offset + 2] * alpha + state[state_offset + 2] * (1 - alpha))
+    }
+    updateCanvas()
+    preview_ctx.clearRect(0, 0, WIDTH, HEIGHT)
+    shape_start = null
+  }
 })
 
 $('#color').on('input', function () {
@@ -264,6 +293,8 @@ $('#stroke').on('input', function () {
   $("#decal").css("height", `${SELECTED_STROKE*2}px`)
   console.log('set decal wh')
 });
+
+// initial settings
 
 $("#decal").css("width", `${SELECTED_STROKE*2}px`)
 $("#decal").css("height", `${SELECTED_STROKE*2}px`)

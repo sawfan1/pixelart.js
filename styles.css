@@ -72,3 +72,19 @@ body {
   transform: translate(-50%, -50%);
   pointer-events: none;
 }
+
+.canvas-wrap {
+  pointer-events: none;
+  position: relative;
+}
+
+#canvas {
+  pointer-events: all;
+}
+
+#preview {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  /* background-color: aqua; */
+}
