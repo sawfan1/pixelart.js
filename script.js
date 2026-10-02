@@ -188,7 +188,7 @@ let mouse_held = false;
 canvas.addEventListener("mousedown", (event) => {
   mouse_held = true;
   lastpos = null;
-  shape_start = selected_tool === "rect" ? getMousePos(canvas, event) : null;
+  shape_start = selected_tool === "circle" || "rect" ? getMousePos(canvas, event) : null;
 })
 
 let stroke = 3
@@ -256,11 +256,37 @@ canvas.addEventListener("mousemove", (event) => {
     preview_ctx.lineWidth = SELECTED_STROKE
     preview_ctx.stroke()
   }
+
+  if (selected_tool == "circle") {
+    preview_ctx.clearRect(0, 0, WIDTH, HEIGHT) // clear the screen
+    preview_ctx.beginPath()
+    preview_ctx.arc(shape_start.x, shape_start.y, Math.hypot(pos.x-shape_start.x, pos.y-shape_start.y), 0, Math.PI*2)
+    preview_ctx.strokeStyle = `rgb(${SELECTED_COLOR.r}, ${SELECTED_COLOR.g}, ${SELECTED_COLOR.b})`
+    preview_ctx.lineWidth = SELECTED_STROKE
+    preview_ctx.stroke()
+  }
 })
 
 canvas.addEventListener("mouseup", (event) => {
   mouse_held = false;
   if (selected_tool === "rect" && shape_start) {
+    const preview_data = preview_ctx.getImageData(0, 0, WIDTH, HEIGHT).data
+    for (let pixel = 0; pixel < WIDTH * HEIGHT; pixel++) {
+      const preview_offset = pixel * 4
+      const alpha = preview_data[preview_offset + 3] / 255
+      if (alpha === 0) continue
+
+      const state_offset = pixel * 3
+      state[state_offset] = Math.round(preview_data[preview_offset] * alpha + state[state_offset] * (1 - alpha))
+      state[state_offset + 1] = Math.round(preview_data[preview_offset + 1] * alpha + state[state_offset + 1] * (1 - alpha))
+      state[state_offset + 2] = Math.round(preview_data[preview_offset + 2] * alpha + state[state_offset + 2] * (1 - alpha))
+    }
+    updateCanvas()
+    preview_ctx.clearRect(0, 0, WIDTH, HEIGHT)
+    shape_start = null
+  }
+
+  if (selected_tool === "circle" && shape_start) {
     const preview_data = preview_ctx.getImageData(0, 0, WIDTH, HEIGHT).data
     for (let pixel = 0; pixel < WIDTH * HEIGHT; pixel++) {
       const preview_offset = pixel * 4
