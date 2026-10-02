@@ -158,6 +158,17 @@ for (const key in tools) {
   $(`#${id}`).click(() => {
     $(`#${selected_tool}`).removeClass("active");
     selected_tool = toolValue;
+    if (selected_tool == "brush" || selected_tool == "spray") {
+      $("#decal").css("border-radius", "50%")
+    } else {
+      $("#decal").css("border-radius", "0")
+    }
+
+    if (selected_tool == "select" || selected_tool == "pen" || selected_tool == "circle" || selected_tool == "rect" || selected_tool == "tri") {
+      $("#decal").hide()
+    } else {
+      $("#decal").show()
+    }
     $(`#${id}`).addClass("active");
   });
 }
@@ -174,7 +185,7 @@ let mouse_held = false;
 
 canvas.addEventListener("mousedown", () => {
   mouse_held = true;
-  lastpos = null
+  lastpos = null;
 })
 
 let stroke = 3
@@ -182,10 +193,14 @@ let lastpos = null
 
 
 canvas.addEventListener("mousemove", (event) => {
-  if (!mouse_held) return;
   const pos = getMousePos(canvas, event);
+  $("#decal").css({ left: `${event.clientX}px`, top: `${event.clientY}px`})
+
+  if (!mouse_held) return;
+
   if (selected_tool == "select") {
     console.log("selecting")
+    console.log(pos)
   }
   if (selected_tool == "brush") {
     if (lastpos) {
@@ -239,10 +254,18 @@ $('#color').on('input', function () {
   const cur_color = hexToRgb(selectedColor);
   SELECTED_COLOR.r = cur_color.r
   SELECTED_COLOR.g = cur_color.g
-  SELECTED_COLOR.b = cur_color.b
+  SELECTED_COLOR.b = cur_color.b  
 });
 
 $('#stroke').on('input', function () {
   SELECTED_STROKE = $(this).val();
-  console.log(SELECTED_STROKE)
+  // console.log(SELECTED_STROKE)
+  $("#decal").css("width", `${SELECTED_STROKE*2}px`)
+  $("#decal").css("height", `${SELECTED_STROKE*2}px`)
+  console.log('set decal wh')
 });
+
+$("#decal").css("width", `${SELECTED_STROKE*2}px`)
+$("#decal").css("height", `${SELECTED_STROKE*2}px`)
+
+$("#decal").hide()
