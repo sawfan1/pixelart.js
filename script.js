@@ -1,7 +1,14 @@
 console.log("app initialized!")
 
-const SELECTED_COLOR = { r: 145, g: 23, b: 90 }
-let SELECTED_STROKE = 4
+const SELECTED_COLOR = { r: 38, g: 101, b: 247 }
+let SELECTED_STROKE = 4;
+
+function download_image(canvas, filename="untitled.png") {
+  const link = document.createElement('a');
+  link.href = canvas.toDataURL('image/png');;
+  link.download = filename
+  link.click()
+}
 
 const WHITE = {
   r: 255,
@@ -326,3 +333,12 @@ $("#decal").css("width", `${SELECTED_STROKE*2}px`)
 $("#decal").css("height", `${SELECTED_STROKE*2}px`)
 
 $("#decal").hide()
+
+$("#download").click(() => {
+  download_image(canvas)
+})
+
+$("#clear").click(() => {
+  state.fill(255)
+  updateCanvas()
+})

@@ -88,3 +88,15 @@ body {
   inset: 0;
   /* background-color: aqua; */
 }
+
+#download {
+  margin-top: 20px;
+  padding: 10px 10px;
+  cursor: pointer;
+}
+
+#clear {
+  margin-top: 20px;
+  padding: 10px 10px;
+  cursor: pointer;
+}
