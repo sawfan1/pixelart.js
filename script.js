@@ -118,7 +118,6 @@ const WIDTH = 600;
 const HEIGHT = 400;
 
 const tools = {
-  SELECT: "select",
   BRUSH: "brush",
   SPRAY: "spray",
   PEN: "pen",
@@ -155,8 +154,8 @@ function setPixel(color, x, y) {
   state[pos + 2] = color.b;
 }
 
-let selected_tool = tools.SELECT;
-$("#select").addClass("active")
+let selected_tool = tools.BRUSH;
+$("#brush").addClass("active")
 
 // handle selections
 
@@ -195,7 +194,7 @@ let mouse_held = false;
 canvas.addEventListener("mousedown", (event) => {
   mouse_held = true;
   lastpos = null;
-  shape_start = selected_tool === "circle" || "rect" ? getMousePos(canvas, event) : null;
+  shape_start = selected_tool === "circle" || "rect" || "tri" ? getMousePos(canvas, event) : null;
 })
 
 let stroke = 3
@@ -272,28 +271,34 @@ canvas.addEventListener("mousemove", (event) => {
     preview_ctx.lineWidth = SELECTED_STROKE
     preview_ctx.stroke()
   }
+
+  if (selected_tool == "tri") {
+    preview_ctx.clearRect(0, 0, WIDTH, HEIGHT) // clear the screen
+    const radius = Math.hypot(pos.x-shape_start.x, pos.y-shape_start.y)
+    const angle = Math.atan2(pos.y-shape_start.y, pos.x-shape_start.x)
+
+    preview_ctx.beginPath()
+    for (let i=0; i<3; i++) {
+      const a = angle + (i*2*Math.PI)/3;
+      const x = shape_start.x + radius * Math.cos(a)
+      const y = shape_start.y + radius * Math.sin(a)
+      if (i == 0) {
+        preview_ctx.moveTo(x,y)
+      } else {
+        preview_ctx.lineTo(x, y)
+      }
+    }
+
+    preview_ctx.closePath()
+    preview_ctx.strokeStyle = `rgb(${SELECTED_COLOR.r}, ${SELECTED_COLOR.g}, ${SELECTED_COLOR.b})`
+    preview_ctx.lineWidth = SELECTED_STROKE;
+    preview_ctx.stroke()
+  }
 })
 
 canvas.addEventListener("mouseup", (event) => {
   mouse_held = false;
-  if (selected_tool === "rect" && shape_start) {
-    const preview_data = preview_ctx.getImageData(0, 0, WIDTH, HEIGHT).data
-    for (let pixel = 0; pixel < WIDTH * HEIGHT; pixel++) {
-      const preview_offset = pixel * 4
-      const alpha = preview_data[preview_offset + 3] / 255
-      if (alpha === 0) continue
-
-      const state_offset = pixel * 3
-      state[state_offset] = Math.round(preview_data[preview_offset] * alpha + state[state_offset] * (1 - alpha))
-      state[state_offset + 1] = Math.round(preview_data[preview_offset + 1] * alpha + state[state_offset + 1] * (1 - alpha))
-      state[state_offset + 2] = Math.round(preview_data[preview_offset + 2] * alpha + state[state_offset + 2] * (1 - alpha))
-    }
-    updateCanvas()
-    preview_ctx.clearRect(0, 0, WIDTH, HEIGHT)
-    shape_start = null
-  }
-
-  if (selected_tool === "circle" && shape_start) {
+  if ((selected_tool === "rect" || "circle" || "tri") && shape_start) {
     const preview_data = preview_ctx.getImageData(0, 0, WIDTH, HEIGHT).data
     for (let pixel = 0; pixel < WIDTH * HEIGHT; pixel++) {
       const preview_offset = pixel * 4

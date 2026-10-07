@@ -4,12 +4,20 @@
 }
 
 body {
-  background-color: rgb(145, 138, 138);
+  background-color: rgb(32, 32, 32);
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100vh;
   gap: 20px;
+  position: relative;
+}
+
+#name {
+  position: absolute;
+  color: white;
+  top: 80px;
+  font-family: Georgia, 'Times New Roman', Times, serif;
 }
 
 #tools {
@@ -20,8 +28,7 @@ body {
   padding: 10px;
   place-content: center;
   gap: 4px;
-  /* margin-top: calc(50vh - 116px); */
-  /* margin-left: 50px; */
+  border: white 2px solid;
 }
 
 #tools > button {
@@ -44,6 +51,7 @@ body {
   height: 300px;
   width: 350px;
   padding: 20px;
+  border: 2px solid white;
 }
 
 .title {
@@ -99,4 +107,12 @@ body {
   margin-top: 20px;
   padding: 10px 10px;
   cursor: pointer;
+}
+
+#github {
+  cursor: pointer;
+  margin-top: 20px;
+  padding: 10px 10px;
+  background: rgb(9, 104, 192);
+  color: rgb(225, 224, 235);
 }
